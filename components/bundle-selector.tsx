@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { bundles } from "@/lib/pricing";
 import type { BundleType } from "@/lib/types";
 
@@ -16,6 +15,14 @@ export default function BundleSelector({
   return (
     <section id="bundles" className="py-12 sm:py-16">
       <div className="mx-auto max-w-5xl px-4 sm:px-6">
+        {/* Scarcity Alert Bar */}
+        <div className="w-full bg-amber-500/10 border border-amber-500/30 rounded-xl p-3 mb-8 text-center">
+          <p className="text-amber-400 text-sm sm:text-base font-medium flex items-center justify-center gap-2">
+            <span>⚠️</span>
+            <span>تنبيه: الكمية المتبقية بالسعر المخفض من دفعة هذا الأسبوع محدودة جداً</span>
+          </p>
+        </div>
+
         {/* Section header */}
         <div className="mb-8 text-center">
           <h2 className="text-2xl font-bold text-foreground sm:text-3xl">
@@ -51,47 +58,54 @@ export default function BundleSelector({
                   </div>
                 )}
 
-                {/* Selection indicator */}
-                <div className="mb-3 flex items-center gap-3">
-                  <div
-                    className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 transition-colors ${
-                      isSelected
-                        ? "border-accent bg-accent"
-                        : "border-muted-foreground/30"
-                    }`}
-                  >
-                    {isSelected && (
-                      <svg
-                        className="h-3 w-3 text-white"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        strokeWidth={3}
-                        stroke="currentColor"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          d="M4.5 12.75l6 6 9-13.5"
-                        />
-                      </svg>
-                    )}
+                {/* Selection indicator & label */}
+                <div className="mb-3 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div
+                      className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 transition-colors ${
+                        isSelected
+                          ? "border-accent bg-accent"
+                          : "border-muted-foreground/30"
+                      }`}
+                    >
+                      {isSelected && (
+                        <svg
+                          className="h-3 w-3 text-white"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          strokeWidth={3}
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M4.5 12.75l6 6 9-13.5"
+                          />
+                        </svg>
+                      )}
+                    </div>
+                    <span className="text-base font-bold text-foreground">
+                      {bundle.label_ar}
+                    </span>
                   </div>
-                  <span className="text-base font-bold text-foreground">
-                    {bundle.label_ar}
+
+                  {/* Savings Tag */}
+                  <span className="rounded-md bg-emerald-500/15 px-2 py-0.5 text-xs font-bold text-emerald-400 border border-emerald-500/30">
+                    {bundle.discountBadge}
                   </span>
                 </div>
 
-                {/* Price */}
-                <div className="mb-2 flex items-baseline gap-1">
-                  <span className="text-3xl font-extrabold text-foreground">
-                    {bundle.price.toLocaleString("ar-DZ")}
+                {/* Price Display with Strikethrough */}
+                <div className="mb-2 flex items-baseline gap-2">
+                  <span className="text-2xl sm:text-3xl font-extrabold text-orange-500">
+                    {bundle.price.toLocaleString("ar-DZ")} <span className="text-sm font-medium">دج</span>
                   </span>
-                  <span className="text-sm font-medium text-muted-foreground">
-                    دج
+                  <span className="line-through text-slate-400 text-sm sm:text-base">
+                    {bundle.originalPrice.toLocaleString("ar-DZ")} دج
                   </span>
                 </div>
 
-                {/* Per-piece price for multi-bundles */}
+                {/* Per-piece price calculation */}
                 {bundle.quantity > 1 && (
                   <p className="mb-2 text-xs text-muted-foreground">
                     أي{" "}
@@ -102,7 +116,7 @@ export default function BundleSelector({
                   </p>
                 )}
 
-                {/* Free shipping badge */}
+                {/* Free shipping perk badge */}
                 {bundle.badge_ar && (
                   <div
                     className={`mt-auto rounded-lg px-3 py-1.5 text-xs font-semibold ${

@@ -10,6 +10,8 @@ export interface Bundle {
   label_ar: string;
   quantity: number;
   price: number;
+  originalPrice: number;
+  discountBadge: string;
   freeShipping: boolean;
   badge_ar?: string;
   highlight?: boolean;

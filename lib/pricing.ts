@@ -1,4 +1,5 @@
-import { Bundle, BundleType } from "./types";
+import { Bundle, BundleType, DeliveryType } from "./types";
+import { getWilayaById } from "./wilayas";
 
 export const bundles: Bundle[] = [
   {
@@ -6,6 +7,8 @@ export const bundles: Bundle[] = [
     label_ar: "قطعة واحدة",
     quantity: 1,
     price: 2900,
+    originalPrice: 4200,
+    discountBadge: "وفر 30%",
     freeShipping: false,
   },
   {
@@ -13,17 +16,21 @@ export const bundles: Bundle[] = [
     label_ar: "قطعتين (2)",
     quantity: 2,
     price: 5300,
+    originalPrice: 8400,
+    discountBadge: "وفر 37%",
     freeShipping: true,
-    badge_ar: "🔥 توصيل مجاني لباب الدار",
+    badge_ar: "🎁 توصيل مجاني لباب الدار",
     highlight: true,
   },
   {
     type: "3_pieces",
     label_ar: "3 قطع",
     quantity: 3,
-    price: 7900,
+    price: 6900,
+    originalPrice: 12600,
+    discountBadge: "وفر 45%",
     freeShipping: true,
-    badge_ar: "🎁 توصيل مجاني + أفضل سعر",
+    badge_ar: "🚀 توصيل مجاني + أفضل سعر على الإطلاق",
   },
 ];
 
@@ -38,25 +45,38 @@ export interface PriceBreakdown {
   bundleLabel: string;
 }
 
+export function getShippingFee(
+  wilayaId: number,
+  deliveryType: DeliveryType,
+  bundleType: string
+): number {
+  if (bundleType === "2_pieces" || bundleType === "3_pieces") {
+    return 0; // Free shipping for bundles 2 & 3
+  }
+
+  const wilaya = getWilayaById(wilayaId);
+  if (!wilaya) {
+    return deliveryType === "domicile" ? 700 : 400;
+  }
+
+  if (deliveryType === "domicile") {
+    return wilaya.domicileFee ?? 700;
+  } else {
+    return wilaya.stopdeskFee ?? 400;
+  }
+}
+
 export function calculatePrice(
   bundleType: BundleType,
   wilayaId: number,
-  deliveryType: "domicile" | "stopdesk"
+  deliveryType: DeliveryType
 ): PriceBreakdown {
   const bundle = getBundleByType(bundleType);
   if (!bundle) {
     throw new Error(`Invalid bundle type: ${bundleType}`);
   }
 
-  // Import dynamically or get fee
-  let shippingFee = 0;
-  if (!bundle.freeShipping) {
-    if (wilayaId === 16) {
-      shippingFee = deliveryType === "domicile" ? 400 : 250;
-    } else {
-      shippingFee = deliveryType === "domicile" ? 700 : 400;
-    }
-  }
+  const shippingFee = getShippingFee(wilayaId, deliveryType, bundleType);
 
   return {
     bundlePrice: bundle.price,
