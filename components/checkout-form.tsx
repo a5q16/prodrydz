@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { wilayas } from "@/lib/wilayas";
+import { getCommunesByWilaya } from "@/lib/communes";
 import { calculatePrice, formatPrice } from "@/lib/pricing";
 import { orderFormSchema, type BundleType, type DeliveryType, type PaymentMethod } from "@/lib/types";
 import { toast } from "sonner";
@@ -26,20 +27,30 @@ export default function CheckoutForm({ selectedBundle }: CheckoutFormProps) {
     phone: "",
     wilaya_id: 0,
     commune: "",
-    address: "",
   });
 
   const selectedWilaya = formData.wilaya_id || 16;
   const priceBreakdown = calculatePrice(selectedBundle, selectedWilaya, deliveryType);
+  const communesList = formData.wilaya_id > 0 ? getCommunesByWilaya(formData.wilaya_id) : [];
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: name === "wilaya_id" ? parseInt(value) || 0 : value,
-    }));
+    if (name === "wilaya_id") {
+      const newWilayaId = parseInt(value) || 0;
+      setFormData((prev) => ({
+        ...prev,
+        wilaya_id: newWilayaId,
+        commune: "", // Reset commune when wilaya changes
+      }));
+    } else {
+      setFormData((prev) => ({
+        ...prev,
+        [name]: value,
+      }));
+    }
+
     if (errors[name]) {
       setErrors((prev) => ({ ...prev, [name]: undefined }));
     }
@@ -48,8 +59,13 @@ export default function CheckoutForm({ selectedBundle }: CheckoutFormProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    const selectedWilayaObj = wilayas.find((w) => w.id === formData.wilaya_id);
+    const wilayaName = selectedWilayaObj?.name_ar || "";
+    const constructedAddress = `${formData.commune}, ${wilayaName}`;
+
     const data = {
       ...formData,
+      address: constructedAddress,
       bundle_type: selectedBundle,
       delivery_type: deliveryType,
       payment_method: paymentMethod,
@@ -78,8 +94,8 @@ export default function CheckoutForm({ selectedBundle }: CheckoutFormProps) {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             ...result.data,
-            wilaya_name:
-              wilayas.find((w) => w.id === result.data.wilaya_id)?.name_ar ?? "",
+            address: constructedAddress,
+            wilaya_name: wilayaName,
             total_price: priceBreakdown.totalPrice,
             shipping_fee: priceBreakdown.shippingFee,
           }),
@@ -241,34 +257,28 @@ export default function CheckoutForm({ selectedBundle }: CheckoutFormProps) {
             {errors.wilaya_id && <p className="mt-1 text-xs text-destructive">{errors.wilaya_id}</p>}
           </div>
 
-          {/* Commune */}
+          {/* Commune (Dependent Dropdown) */}
           <div>
             <label htmlFor="commune" className="mb-1.5 block text-sm font-semibold text-foreground">
-              البلدية / الحي <span className="text-destructive">*</span>
+              البلدية <span className="text-destructive">*</span>
             </label>
-            <input
-              id="commune" name="commune" type="text"
+            <select
+              id="commune" name="commune"
               value={formData.commune} onChange={handleChange}
+              disabled={formData.wilaya_id === 0}
               data-error={!!errors.commune}
-              placeholder="مثال: سيدي أمحمد"
-              className={`form-input-focus w-full rounded-xl border bg-background px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/60 transition-all ${errors.commune ? "border-destructive" : "border-border"}`}
-            />
+              className={`form-input-focus w-full rounded-xl border bg-background px-4 py-3 text-sm text-foreground transition-all appearance-none disabled:opacity-50 disabled:cursor-not-allowed ${errors.commune ? "border-destructive" : "border-border"} ${!formData.commune ? "text-muted-foreground/60" : ""}`}
+            >
+              <option value="" disabled>
+                {formData.wilaya_id === 0 ? "يرجى اختيار الولاية أولاً..." : "اختر البلدية..."}
+              </option>
+              {communesList.map((communeName, i) => (
+                <option key={i} value={communeName}>
+                  {communeName}
+                </option>
+              ))}
+            </select>
             {errors.commune && <p className="mt-1 text-xs text-destructive">{errors.commune}</p>}
-          </div>
-
-          {/* Address */}
-          <div>
-            <label htmlFor="address" className="mb-1.5 block text-sm font-semibold text-foreground">
-              العنوان الكامل <span className="text-destructive">*</span>
-            </label>
-            <input
-              id="address" name="address" type="text"
-              value={formData.address} onChange={handleChange}
-              data-error={!!errors.address}
-              placeholder="مثال: شارع ديدوش مراد، عمارة 5، الطابق 3"
-              className={`form-input-focus w-full rounded-xl border bg-background px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/60 transition-all ${errors.address ? "border-destructive" : "border-border"}`}
-            />
-            {errors.address && <p className="mt-1 text-xs text-destructive">{errors.address}</p>}
           </div>
 
           {/* ──────── Payment Method Toggle ──────── */}

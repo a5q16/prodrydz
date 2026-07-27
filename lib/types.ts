@@ -60,12 +60,9 @@ export const orderFormSchema = z.object({
     .max(58, "ولاية غير صالحة"),
   commune: z
     .string()
-    .min(2, "يرجى إدخال البلدية")
-    .max(100, "اسم البلدية طويل جدًا"),
-  address: z
-    .string()
-    .min(5, "يرجى إدخال العنوان الكامل")
-    .max(300, "العنوان طويل جدًا"),
+    .min(2, "يرجى اختيار البلدية")
+    .max(100, "اسم البلدية غير صالح"),
+  address: z.string().optional(),
   bundle_type: z.enum(["1_piece", "2_pieces", "3_pieces"], {
     message: "يرجى اختيار العرض",
   }),
