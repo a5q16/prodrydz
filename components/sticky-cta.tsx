@@ -41,7 +41,7 @@ export default function StickyCta() {
         onClick={scrollToCheckout}
         className="cta-pulse w-full rounded-xl bg-cta py-3.5 text-base font-bold text-cta-foreground transition-all active:scale-[0.98]"
       >
-        اطلب الآن — الدفع عند الاستلام 🚚
+        اطلب الآن والدفع عند الاستلام 🚗
       </button>
     </div>
   );

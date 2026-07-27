@@ -32,21 +32,18 @@ export default function Hero() {
           </span>
         </h1>
 
-        {/* Video / Image Showcase Placeholder (16:9) */}
-        <div className="mx-auto mt-10 max-w-2xl sm:mt-12">
-          <div className="relative aspect-video overflow-hidden rounded-2xl border border-border/50 bg-muted/50 shadow-2xl shadow-accent/5">
-            <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-muted-foreground">
-              <div className="flex h-16 w-16 items-center justify-center rounded-full border-2 border-muted-foreground/30 bg-muted/80 transition-colors hover:border-accent hover:text-accent">
-                <svg className="h-6 w-6 translate-x-0.5" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M8 5v14l11-7z" />
-                </svg>
-              </div>
-              <p className="text-sm font-medium">شاهد العرض التوضيحي</p>
-            </div>
-            <div className="absolute top-3 right-3 h-3 w-3 border-t-2 border-r-2 border-accent/40 rounded-tr-sm" />
-            <div className="absolute top-3 left-3 h-3 w-3 border-t-2 border-l-2 border-accent/40 rounded-tl-sm" />
-            <div className="absolute bottom-3 right-3 h-3 w-3 border-b-2 border-r-2 border-accent/40 rounded-br-sm" />
-            <div className="absolute bottom-3 left-3 h-3 w-3 border-b-2 border-l-2 border-accent/40 rounded-bl-sm" />
+        {/* 9:16 Vertical Promo Video Container */}
+        <div className="mx-auto mt-8 sm:mt-10">
+          <div className="relative w-full max-w-[320px] sm:max-w-sm mx-auto aspect-[9/16] rounded-2xl overflow-hidden shadow-2xl border border-accent/30 bg-slate-900/80">
+            <video
+              src="/promo.mp4"
+              autoPlay
+              loop
+              muted
+              playsInline
+              preload="auto"
+              className="w-full h-full object-cover"
+            />
           </div>
         </div>
 

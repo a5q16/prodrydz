@@ -18,19 +18,24 @@ export default function Home() {
       <Header />
 
       <main className="flex-1">
+        {/* 1. Hero Section (Hook & 9:16 Vertical Video) */}
         <Hero />
 
-        <BundleSelector
-          selectedBundle={selectedBundle}
-          onBundleChange={setSelectedBundle}
-        />
-
-        <CheckoutForm selectedBundle={selectedBundle} />
+        {/* 2. Visual Proof & Benefits */}
+        <Benefits />
 
         {/* Divider */}
         <div className="mx-auto max-w-xs border-t border-border/30" />
 
-        <Benefits />
+        {/* 3. Bundle Selector & Checkout Form (#checkout anchor) */}
+        <div id="checkout">
+          <BundleSelector
+            selectedBundle={selectedBundle}
+            onBundleChange={setSelectedBundle}
+          />
+
+          <CheckoutForm selectedBundle={selectedBundle} />
+        </div>
       </main>
 
       <Footer />
