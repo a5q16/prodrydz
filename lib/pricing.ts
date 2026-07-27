@@ -1,5 +1,4 @@
-import { Bundle, BundleType, DeliveryType } from "./types";
-import { getWilayaById } from "./wilayas";
+import { Bundle, BundleType } from "./types";
 
 export const bundles: Bundle[] = [
   {
@@ -15,7 +14,7 @@ export const bundles: Bundle[] = [
     quantity: 2,
     price: 5300,
     freeShipping: true,
-    badge_ar: "🎁 توصيل مجاني لباب الدار",
+    badge_ar: "🔥 توصيل مجاني لباب الدار",
     highlight: true,
   },
   {
@@ -39,38 +38,25 @@ export interface PriceBreakdown {
   bundleLabel: string;
 }
 
-export function getShippingFee(
-  wilayaId: number,
-  deliveryType: DeliveryType,
-  bundleType: string
-): number {
-  if (bundleType === "2_pieces" || bundleType === "3_pieces") {
-    return 0; // Free shipping for bundles 2 & 3
-  }
-
-  const wilaya = getWilayaById(wilayaId);
-  if (!wilaya) {
-    return deliveryType === "domicile" ? 700 : 400;
-  }
-
-  if (deliveryType === "domicile") {
-    return wilaya.domicileFee ?? 700;
-  } else {
-    return wilaya.stopdeskFee ?? 400;
-  }
-}
-
 export function calculatePrice(
   bundleType: BundleType,
   wilayaId: number,
-  deliveryType: DeliveryType
+  deliveryType: "domicile" | "stopdesk"
 ): PriceBreakdown {
   const bundle = getBundleByType(bundleType);
   if (!bundle) {
     throw new Error(`Invalid bundle type: ${bundleType}`);
   }
 
-  const shippingFee = getShippingFee(wilayaId, deliveryType, bundleType);
+  // Import dynamically or get fee
+  let shippingFee = 0;
+  if (!bundle.freeShipping) {
+    if (wilayaId === 16) {
+      shippingFee = deliveryType === "domicile" ? 400 : 250;
+    } else {
+      shippingFee = deliveryType === "domicile" ? 700 : 400;
+    }
+  }
 
   return {
     bundlePrice: bundle.price,
