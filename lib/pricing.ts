@@ -1,5 +1,5 @@
 import { Bundle, BundleType, DeliveryType } from "./types";
-import { getShippingFee as getEcoTrackShippingFee } from "./ecotrack-data";
+import { getWilayaById } from "./wilayas";
 
 export const bundles: Bundle[] = [
   {
@@ -39,6 +39,27 @@ export interface PriceBreakdown {
   bundleLabel: string;
 }
 
+export function getShippingFee(
+  wilayaId: number,
+  deliveryType: DeliveryType,
+  bundleType: string
+): number {
+  if (bundleType === "2_pieces" || bundleType === "3_pieces") {
+    return 0; // Free shipping for bundles 2 & 3
+  }
+
+  const wilaya = getWilayaById(wilayaId);
+  if (!wilaya) {
+    return deliveryType === "domicile" ? 700 : 400;
+  }
+
+  if (deliveryType === "domicile") {
+    return wilaya.domicileFee ?? 700;
+  } else {
+    return wilaya.stopdeskFee ?? 400;
+  }
+}
+
 export function calculatePrice(
   bundleType: BundleType,
   wilayaId: number,
@@ -49,7 +70,7 @@ export function calculatePrice(
     throw new Error(`Invalid bundle type: ${bundleType}`);
   }
 
-  const shippingFee = getEcoTrackShippingFee(wilayaId, deliveryType, bundleType);
+  const shippingFee = getShippingFee(wilayaId, deliveryType, bundleType);
 
   return {
     bundlePrice: bundle.price,

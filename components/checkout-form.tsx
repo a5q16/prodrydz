@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition, useEffect } from "react";
-import { wilayas } from "@/lib/wilayas";
+import { wilayasData, getWilayaById } from "@/lib/wilayas";
 import { getCommunesByWilaya } from "@/lib/ecotrack-data";
 import { calculatePrice, formatPrice } from "@/lib/pricing";
 import { orderFormSchema, type BundleType, type DeliveryType, type PaymentMethod } from "@/lib/types";
@@ -30,9 +30,21 @@ export default function CheckoutForm({ selectedBundle }: CheckoutFormProps) {
     commune: "",
   });
 
-  const selectedWilaya = formData.wilaya_id || 16;
-  const priceBreakdown = calculatePrice(selectedBundle, selectedWilaya, deliveryType);
+  const selectedWilayaObj = getWilayaById(formData.wilaya_id);
+  const selectedWilayaId = formData.wilaya_id || 16;
+  const priceBreakdown = calculatePrice(selectedBundle, selectedWilayaId, deliveryType);
   const communesList = formData.wilaya_id > 0 ? getCommunesByWilaya(formData.wilaya_id, deliveryType === "stopdesk") : [];
+
+  // Check if current wilaya supports Stopdesk
+  const hasStopdeskSupport = selectedWilayaObj ? selectedWilayaObj.stopdeskFee !== null : true;
+
+  // Auto fallback to domicile if selected wilaya does NOT support stopdesk
+  useEffect(() => {
+    if (selectedWilayaObj && selectedWilayaObj.stopdeskFee === null && deliveryType === "stopdesk") {
+      setDeliveryType("domicile");
+      toast.info(`التوصيل للمكتب غير متوفر لولاية ${selectedWilayaObj.name_ar}، تم اختيار التوصيل لباب الدار تلقائياً.`);
+    }
+  }, [selectedWilayaObj, deliveryType]);
 
   // Re-check commune when deliveryType changes to stopdesk
   useEffect(() => {
@@ -56,6 +68,13 @@ export default function CheckoutForm({ selectedBundle }: CheckoutFormProps) {
     const { name, value } = e.target;
     if (name === "wilaya_id") {
       const newWilayaId = parseInt(value) || 0;
+      const targetWilaya = getWilayaById(newWilayaId);
+      
+      // Auto-fallback if switching to a wilaya without stopdesk
+      if (targetWilaya && targetWilaya.stopdeskFee === null && deliveryType === "stopdesk") {
+        setDeliveryType("domicile");
+      }
+
       setFormData((prev) => ({
         ...prev,
         wilaya_id: newWilayaId,
@@ -76,7 +95,6 @@ export default function CheckoutForm({ selectedBundle }: CheckoutFormProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const selectedWilayaObj = wilayas.find((w) => w.id === formData.wilaya_id);
     const wilayaName = selectedWilayaObj?.name_ar || "";
     const constructedAddress = `${formData.commune}, Wilaya ${formData.wilaya_id}`;
 
@@ -241,8 +259,9 @@ export default function CheckoutForm({ selectedBundle }: CheckoutFormProps) {
               </button>
               <button
                 type="button"
+                disabled={!hasStopdeskSupport}
                 onClick={() => setDeliveryType("stopdesk")}
-                className={`flex items-center justify-center gap-2 rounded-xl border-2 px-3 py-3 text-sm font-semibold transition-all ${
+                className={`flex items-center justify-center gap-2 rounded-xl border-2 px-3 py-3 text-sm font-semibold transition-all disabled:opacity-40 disabled:cursor-not-allowed ${
                   deliveryType === "stopdesk"
                     ? "border-accent bg-accent/10 text-accent"
                     : "border-border bg-background text-muted-foreground hover:border-accent/30"
@@ -265,7 +284,7 @@ export default function CheckoutForm({ selectedBundle }: CheckoutFormProps) {
               className={`form-input-focus w-full rounded-xl border bg-background px-4 py-3 text-sm text-foreground transition-all appearance-none ${errors.wilaya_id ? "border-destructive" : "border-border"} ${formData.wilaya_id === 0 ? "text-muted-foreground/60" : ""}`}
             >
               <option value={0} disabled>اختر الولاية...</option>
-              {wilayas.map((w) => (
+              {wilayasData.map((w) => (
                 <option key={w.id} value={w.id}>
                   {w.id} - {w.name_ar} ({w.name_fr})
                 </option>
@@ -273,6 +292,46 @@ export default function CheckoutForm({ selectedBundle }: CheckoutFormProps) {
             </select>
             {errors.wilaya_id && <p className="mt-1 text-xs text-destructive">{errors.wilaya_id}</p>}
           </div>
+
+          {/* ──────── StopDesk Informational Card ──────── */}
+          {deliveryType === "stopdesk" && selectedWilayaObj?.stopdesk && (
+            <div className="rounded-xl border border-accent/30 bg-accent/5 p-4 space-y-2 text-right transition-all">
+              <div className="flex items-center justify-between border-b border-accent/20 pb-2">
+                <span className="text-xs font-bold uppercase tracking-wider text-accent">
+                  معلومات مكتب التوصيل ({selectedWilayaObj.name_ar})
+                </span>
+                <span className="text-xs font-medium text-muted-foreground">
+                  ⏱️ {selectedWilayaObj.duration}
+                </span>
+              </div>
+              <div className="space-y-1 text-xs text-foreground">
+                <p>
+                  <strong className="text-muted-foreground">الوكالة:</strong>{" "}
+                  <span className="font-semibold uppercase">{selectedWilayaObj.stopdesk.agency}</span>
+                </p>
+                <p>
+                  <strong className="text-muted-foreground">العنوان:</strong>{" "}
+                  {selectedWilayaObj.stopdesk.address}
+                </p>
+                <p dir="ltr" className="text-right">
+                  <strong className="text-muted-foreground">الهاتف:</strong>{" "}
+                  <span className="font-mono">{selectedWilayaObj.stopdesk.phone}</span>
+                </p>
+              </div>
+              {selectedWilayaObj.stopdesk.maps_link !== "" && (
+                <div className="pt-2">
+                  <a
+                    href={selectedWilayaObj.stopdesk.maps_link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex w-full items-center justify-center gap-1.5 rounded-lg bg-accent/15 px-3 py-2 text-xs font-bold text-accent transition-colors hover:bg-accent hover:text-white"
+                  >
+                    📍 عرض موقع المكتب على خريطة جوجل
+                  </a>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Commune (Dynamic Dropdown + Smart Filtering) */}
           <div>
@@ -350,6 +409,11 @@ export default function CheckoutForm({ selectedBundle }: CheckoutFormProps) {
             <div className="flex items-center justify-between text-sm">
               <span className="text-muted-foreground">
                 مصاريف التوصيل ({deliveryType === "domicile" ? "باب الدار" : "مكتب"})
+                {selectedWilayaObj && (
+                  <span className="mr-1 text-xs text-muted-foreground">
+                    ({selectedWilayaObj.duration})
+                  </span>
+                )}
               </span>
               <span className={`font-semibold ${priceBreakdown.shippingFee === 0 ? "text-cta" : "text-foreground"}`}>
                 {priceBreakdown.shippingFee === 0

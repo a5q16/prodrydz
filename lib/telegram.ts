@@ -1,4 +1,5 @@
 import type { Order } from "./types";
+import { getWilayaById } from "./wilayas";
 
 const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN!;
 const CHAT_ID = process.env.TELEGRAM_CHAT_ID!;
@@ -18,17 +19,34 @@ export async function sendOrderNotification(order: Order): Promise<number | null
     "3_pieces": "3 قطع",
   };
 
-  const text = [
+  const wilayaInfo = getWilayaById(order.wilaya_id);
+
+  const textLines = [
     `📦 *طلب جديد # ${order.order_number}*`,
     ``,
     `👤 الاسم: ${order.full_name}`,
     `📞 الهاتف: ${order.phone}`,
     `📍 العنوان: ${order.wilaya_name} - ${order.commune}`,
     `🚚 التوصيل: ${deliveryLabel}`,
+    `⏱️ مدة التوصيل المتوقعة: ${wilayaInfo?.duration || "غير حددة"}`,
     `🛒 العرض: ${bundleLabels[order.bundle_type] || order.bundle_type}`,
     `💰 الإجمالي: ${order.total_price} دج (الشحن: ${order.shipping_fee} دج)`,
     `💳 الدفع: ${paymentLabel}`,
-  ].join("\n");
+  ];
+
+  if (order.delivery_type === "stopdesk" && wilayaInfo?.stopdesk) {
+    const mapsLink = wilayaInfo.stopdesk.maps_link !== "" ? wilayaInfo.stopdesk.maps_link : "غير متوفر";
+    textLines.push(
+      ``,
+      `🏢 *معلومات مكتب التوصيل:*`,
+      `• الوكالة: ${wilayaInfo.stopdesk.agency}`,
+      `• العنوان: ${wilayaInfo.stopdesk.address}`,
+      `• هاتف المكتب: ${wilayaInfo.stopdesk.phone}`,
+      `• خريطة جوجل: ${mapsLink}`
+    );
+  }
+
+  const text = textLines.join("\n");
 
   const inline_keyboard = [
     [

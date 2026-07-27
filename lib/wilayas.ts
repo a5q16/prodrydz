@@ -1,92 +1,83 @@
-import { Wilaya } from "./types";
-import type { DeliveryType } from "./types";
-
-/**
- * All 58 Algerian Wilayas with delivery fees per type.
- * Fees apply ONLY to Bundle 1 (single piece).
- * Bundles 2 & 3 always get free shipping (0 DA).
- *
- * Pricing tiers:
- * - Alger (16): Domicile 450 DA / Stopdesk 300 DA
- * - Neighboring (Blida 9, Tipaza 42, Boumerdes 35): Domicile 650 DA / Stopdesk 400 DA
- * - All others: Domicile 800 DA / Stopdesk 450 DA
- */
-
-const NEIGHBORING_WILAYAS = [9, 35, 42]; // Blida, Boumerdes, Tipaza
-
-function getFees(id: number): { domicileFee: number; stopdeskFee: number } {
-  if (id === 16) return { domicileFee: 450, stopdeskFee: 300 };
-  if (NEIGHBORING_WILAYAS.includes(id)) return { domicileFee: 650, stopdeskFee: 400 };
-  return { domicileFee: 800, stopdeskFee: 450 };
+export interface StopDeskInfo {
+  address: string;
+  phone: string;
+  maps_link: string;
+  agency: string;
 }
 
-export const wilayas: Wilaya[] = [
-  { id: 1, name_ar: "أدرار", name_fr: "Adrar", ...getFees(1) },
-  { id: 2, name_ar: "الشلف", name_fr: "Chlef", ...getFees(2) },
-  { id: 3, name_ar: "الأغواط", name_fr: "Laghouat", ...getFees(3) },
-  { id: 4, name_ar: "أم البواقي", name_fr: "Oum El Bouaghi", ...getFees(4) },
-  { id: 5, name_ar: "باتنة", name_fr: "Batna", ...getFees(5) },
-  { id: 6, name_ar: "بجاية", name_fr: "Béjaïa", ...getFees(6) },
-  { id: 7, name_ar: "بسكرة", name_fr: "Biskra", ...getFees(7) },
-  { id: 8, name_ar: "بشار", name_fr: "Béchar", ...getFees(8) },
-  { id: 9, name_ar: "البليدة", name_fr: "Blida", ...getFees(9) },
-  { id: 10, name_ar: "البويرة", name_fr: "Bouira", ...getFees(10) },
-  { id: 11, name_ar: "تمنراست", name_fr: "Tamanrasset", ...getFees(11) },
-  { id: 12, name_ar: "تبسة", name_fr: "Tébessa", ...getFees(12) },
-  { id: 13, name_ar: "تلمسان", name_fr: "Tlemcen", ...getFees(13) },
-  { id: 14, name_ar: "تيارت", name_fr: "Tiaret", ...getFees(14) },
-  { id: 15, name_ar: "تيزي وزو", name_fr: "Tizi Ouzou", ...getFees(15) },
-  { id: 16, name_ar: "الجزائر", name_fr: "Alger", ...getFees(16) },
-  { id: 17, name_ar: "الجلفة", name_fr: "Djelfa", ...getFees(17) },
-  { id: 18, name_ar: "جيجل", name_fr: "Jijel", ...getFees(18) },
-  { id: 19, name_ar: "سطيف", name_fr: "Sétif", ...getFees(19) },
-  { id: 20, name_ar: "سعيدة", name_fr: "Saïda", ...getFees(20) },
-  { id: 21, name_ar: "سكيكدة", name_fr: "Skikda", ...getFees(21) },
-  { id: 22, name_ar: "سيدي بلعباس", name_fr: "Sidi Bel Abbès", ...getFees(22) },
-  { id: 23, name_ar: "عنابة", name_fr: "Annaba", ...getFees(23) },
-  { id: 24, name_ar: "قالمة", name_fr: "Guelma", ...getFees(24) },
-  { id: 25, name_ar: "قسنطينة", name_fr: "Constantine", ...getFees(25) },
-  { id: 26, name_ar: "المدية", name_fr: "Médéa", ...getFees(26) },
-  { id: 27, name_ar: "مستغانم", name_fr: "Mostaganem", ...getFees(27) },
-  { id: 28, name_ar: "المسيلة", name_fr: "M'Sila", ...getFees(28) },
-  { id: 29, name_ar: "معسكر", name_fr: "Mascara", ...getFees(29) },
-  { id: 30, name_ar: "ورقلة", name_fr: "Ouargla", ...getFees(30) },
-  { id: 31, name_ar: "وهران", name_fr: "Oran", ...getFees(31) },
-  { id: 32, name_ar: "البيض", name_fr: "El Bayadh", ...getFees(32) },
-  { id: 33, name_ar: "إليزي", name_fr: "Illizi", ...getFees(33) },
-  { id: 34, name_ar: "برج بوعريريج", name_fr: "Bordj Bou Arreridj", ...getFees(34) },
-  { id: 35, name_ar: "بومرداس", name_fr: "Boumerdès", ...getFees(35) },
-  { id: 36, name_ar: "الطارف", name_fr: "El Tarf", ...getFees(36) },
-  { id: 37, name_ar: "تندوف", name_fr: "Tindouf", ...getFees(37) },
-  { id: 38, name_ar: "تيسمسيلت", name_fr: "Tissemsilt", ...getFees(38) },
-  { id: 39, name_ar: "الوادي", name_fr: "El Oued", ...getFees(39) },
-  { id: 40, name_ar: "خنشلة", name_fr: "Khenchela", ...getFees(40) },
-  { id: 41, name_ar: "سوق أهراس", name_fr: "Souk Ahras", ...getFees(41) },
-  { id: 42, name_ar: "تيبازة", name_fr: "Tipaza", ...getFees(42) },
-  { id: 43, name_ar: "ميلة", name_fr: "Mila", ...getFees(43) },
-  { id: 44, name_ar: "عين الدفلى", name_fr: "Aïn Defla", ...getFees(44) },
-  { id: 45, name_ar: "النعامة", name_fr: "Naâma", ...getFees(45) },
-  { id: 46, name_ar: "عين تموشنت", name_fr: "Aïn Témouchent", ...getFees(46) },
-  { id: 47, name_ar: "غرداية", name_fr: "Ghardaïa", ...getFees(47) },
-  { id: 48, name_ar: "غليزان", name_fr: "Relizane", ...getFees(48) },
-  { id: 49, name_ar: "تيميمون", name_fr: "Timimoun", ...getFees(49) },
-  { id: 50, name_ar: "برج باجي مختار", name_fr: "Bordj Badji Mokhtar", ...getFees(50) },
-  { id: 51, name_ar: "أولاد جلال", name_fr: "Ouled Djellal", ...getFees(51) },
-  { id: 52, name_ar: "بني عباس", name_fr: "Béni Abbès", ...getFees(52) },
-  { id: 53, name_ar: "عين صالح", name_fr: "In Salah", ...getFees(53) },
-  { id: 54, name_ar: "عين قزام", name_fr: "In Guezzam", ...getFees(54) },
-  { id: 55, name_ar: "تقرت", name_fr: "Touggourt", ...getFees(55) },
-  { id: 56, name_ar: "جانت", name_fr: "Djanet", ...getFees(56) },
-  { id: 57, name_ar: "المغير", name_fr: "El M'Ghair", ...getFees(57) },
-  { id: 58, name_ar: "المنيعة", name_fr: "El Meniaa", ...getFees(58) },
+export interface WilayaDeliveryData {
+  id: number;
+  name_ar: string;
+  name_fr: string;
+  domicileFee: number | null;
+  stopdeskFee: number | null;
+  duration: string;
+  stopdesk?: StopDeskInfo;
+}
+
+export const wilayasData: WilayaDeliveryData[] = [
+  { id: 1, name_ar: "أدرار", name_fr: "Adrar", domicileFee: 1100, stopdeskFee: 850, duration: "2-7 أيام", stopdesk: { address: "Adrar via Rue de la Cité Mekka Moukarama, Rue Keddour Belitim, et Rue Bitour Hadj Alla, Adrar 01000", phone: "0550602181 / 0561623531", maps_link: "https://maps.app.goo.gl/46ukyZoYHNm1uLLLA", agency: "noest" } },
+  { id: 2, name_ar: "الشلف", name_fr: "Chlef", domicileFee: 700, stopdeskFee: 400, duration: "24 ساعة", stopdesk: { address: "حي البساتين", phone: "0770896097", maps_link: "https://maps.app.goo.gl/mkn4J7rmHDNCb2kNA?g_st=ac", agency: "imir" } },
+  { id: 3, name_ar: "الأغواط", name_fr: "Laghouat", domicileFee: 800, stopdeskFee: 450, duration: "24-96 ساعة", stopdesk: { address: "حي الوئام بجانب اتصالات الجزائر مقابل مسجد أحمد حماني", phone: "0561380193", maps_link: "https://maps.app.goo.gl/eXXfYcWFs7Tj3U1o6", agency: "ka express" } },
+  { id: 4, name_ar: "أم البواقي", name_fr: "Oum El Bouaghi", domicileFee: 700, stopdeskFee: 450, duration: "24 ساعة", stopdesk: { address: "Cité 176 logements LSP Batiment 13 – Oum El Bouaghi", phone: "0560445954 / 0560445855", maps_link: "https://maps.app.goo.gl/mnygK5DkhvYe6Gi79", agency: "noest" } },
+  { id: 5, name_ar: "باتنة", name_fr: "Batna", domicileFee: 700, stopdeskFee: 400, duration: "24 ساعة", stopdesk: { address: "حي المجاهدين 800 مسكن رقم ب 4 باتنة", phone: "0770256543", maps_link: "https://maps.app.goo.gl/BZ3s9q54wXQNecGL8", agency: "packers" } },
+  { id: 6, name_ar: "بجاية", name_fr: "Béjaïa", domicileFee: 700, stopdeskFee: 400, duration: "24 ساعة", stopdesk: { address: "34 rue Kamel Laadjouz (Derrière prison lakhmiss)", phone: "0770322865", maps_link: "https://maps.app.goo.gl/grh58Gfe7X3rXhDd7", agency: "manimed" } },
+  { id: 7, name_ar: "بسكرة", name_fr: "Biskra", domicileFee: 700, stopdeskFee: 450, duration: "24 ساعة", stopdesk: { address: "حي 726 مسكن مقابل مسجد السنة وبجانب مكتب البريد", phone: "0662206464", maps_link: "https://maps.app.goo.gl/vakKTyWYb4w6aJ1P7?g_st=ac", agency: "packers" } },
+  { id: 8, name_ar: "بشار", name_fr: "Béchar", domicileFee: 1000, stopdeskFee: 750, duration: "24-96 ساعة", stopdesk: { address: "Cité universitaire, rez-de-chaussée, lot n°51, en face de l’Université Tahri Boudjemaa", phone: "0561686335 / 0550429404", maps_link: "https://maps.app.goo.gl/8RA3w2DbZczj5XuZA?g_st=ac", agency: "noest" } },
+  { id: 9, name_ar: "البليدة", name_fr: "Blida", domicileFee: 500, stopdeskFee: 300, duration: "24 ساعة", stopdesk: { address: "11 rue kritli bab Al dzair blida", phone: "0563000993", maps_link: "https://maps.app.goo.gl/dGcHwhJwJK7FG5ur6", agency: "packers" } },
+  { id: 10, name_ar: "البويرة", name_fr: "Bouira", domicileFee: 700, stopdeskFee: 400, duration: "24 ساعة", stopdesk: { address: "حي عمار خوجة طريق عين الترك ولاية البويرة", phone: "0794979723", maps_link: "https://maps.app.goo.gl/oFhWf7KxMzEngZWi6", agency: "tikjda" } },
+  { id: 11, name_ar: "تمنراست", name_fr: "Tamanrasset", domicileFee: 1100, stopdeskFee: 900, duration: "2-7 أيام", stopdesk: { address: "7FJ7RG2F+85 Tamanrasset", phone: "0770127283 / 0770749607", maps_link: "https://maps.app.goo.gl/N7wc68XVvr5za48Q9", agency: "noest" } },
+  { id: 12, name_ar: "تبسة", name_fr: "Tébessa", domicileFee: 800, stopdeskFee: 450, duration: "24 ساعة", stopdesk: { address: "طريق عنابة بجانب خيري فاست فود مقابل بارك يحي طرابلسي", phone: "0696819588 / 0770339928", maps_link: "https://maps.app.goo.gl/XscBidbLuWEmoCxV8?g_st=aw", agency: "cirta" } },
+  { id: 13, name_ar: "تلمسان", name_fr: "Tlemcen", domicileFee: 700, stopdeskFee: 450, duration: "24 ساعة", stopdesk: { address: "Rue Derrar abderahmane à côté de la station d'essence de Sidi said", phone: "0778174862", maps_link: "https://maps.app.goo.gl/cYvUxxKqES1kuDaJ7", agency: "rsd" } },
+  { id: 14, name_ar: "تيارت", name_fr: "Tiaret", domicileFee: 700, stopdeskFee: 400, duration: "24 ساعة", stopdesk: { address: "طريق جامعة عند كاتريام (شرطة) مقابل سوبيرات اليسر تيارت", phone: "0659588000", maps_link: "https://maps.app.goo.gl/WXbNNLT4frkzxr7S8", agency: "expedia" } },
+  { id: 15, name_ar: "تيزي وزو", name_fr: "Tizi Ouzou", domicileFee: 700, stopdeskFee: 400, duration: "24 ساعة", stopdesk: { address: "Rue frère beggaze n ville a côté dylia market", phone: "0540546483 / 0541753315", maps_link: "https://goo.gl/maps/h3ovmF4mfZwxjix1A", agency: "swift" } },
+  { id: 16, name_ar: "الجزائر", name_fr: "Alger", domicileFee: 400, stopdeskFee: 250, duration: "نفس اليوم", stopdesk: { address: "Ain Naadja, Alger", phone: "0563000991", maps_link: "https://maps.app.goo.gl/99RDCNEjBAToLqTF6", agency: "packers" } },
+  { id: 17, name_ar: "الجلفة", name_fr: "Djelfa", domicileFee: 750, stopdeskFee: 450, duration: "24-96 ساعة", stopdesk: { address: "Algérie telecome bilombrage, Trigue li radi boutrifiss", phone: "0660627289", maps_link: "https://maps.app.goo.gl/S1kY6qU1MKbUmEKHA?g_st=aw", agency: "expediachrono" } },
+  { id: 18, name_ar: "جيجل", name_fr: "Jijel", domicileFee: 700, stopdeskFee: 400, duration: "24 ساعة", stopdesk: { address: "Lontissment cheriguene N 44 jijel مقابل الثكنة العسكرية", phone: "0794926743", maps_link: "https://maps.app.goo.gl/9YpusezggYmhbNik7", agency: "manimed" } },
+  { id: 19, name_ar: "سطيف", name_fr: "Sétif", domicileFee: 700, stopdeskFee: 350, duration: "24 ساعة", stopdesk: { address: "حي الهضاب قرب الجامعة، سطيف", phone: "0770250354", maps_link: "https://maps.app.goo.gl/1SD9xAVAy7kJCXJu6", agency: "packers" } },
+  { id: 20, name_ar: "سعيدة", name_fr: "Saïda", domicileFee: 700, stopdeskFee: 550, duration: "24 ساعة", stopdesk: { address: "Saida centre ville, derrière cinema El Fath", phone: "0673817167", maps_link: "https://maps.app.goo.gl/RCmuAkPKBgRG7Pc59?g_st=ac", agency: "swift" } },
+  { id: 21, name_ar: "سكيكدة", name_fr: "Skikda", domicileFee: 700, stopdeskFee: 350, duration: "24 ساعة", stopdesk: { address: "حي 500 مسكن بجانب مركز البريد 8 ماي سكيكدة", phone: "0660331143", maps_link: "https://maps.app.goo.gl/48Xq2jbBj9ffaqD28", agency: "packers" } },
+  { id: 22, name_ar: "سيدي بلعباس", name_fr: "Sidi Bel Abbès", domicileFee: 700, stopdeskFee: 400, duration: "24 ساعة", stopdesk: { address: "حي بن حمودة بجانب مسجد خالد ابن الوليد، سيدي الجيلالي", phone: "0784790178 / 0541893522", maps_link: "https://maps.app.goo.gl/ZAVTAkjsEYoy5fCx6?g_st=ac", agency: "expedia" } },
+  { id: 23, name_ar: "عنابة", name_fr: "Annaba", domicileFee: 700, stopdeskFee: 450, duration: "24 ساعة", stopdesk: { address: "Cité 5 juillet 62 les hongrois près de la polyclinique et de la mosquée", phone: "0550086166", maps_link: "https://maps.app.goo.gl/muVoB6v5LVue3hu88?g_st=ic", agency: "jo express" } },
+  { id: 24, name_ar: "قالمة", name_fr: "Guelma", domicileFee: 700, stopdeskFee: 350, duration: "24 ساعة", stopdesk: { address: "حي محطة الحافلات (la gare) اسفل قاعة الحفلات معاوي بجانب محل بيع لوازم الصيادة قالمة", phone: "0775041207", maps_link: "https://maps.app.goo.gl/HKhqWwFKQ5wfYQaT7", agency: "noest" } },
+  { id: 25, name_ar: "قسنطينة", name_fr: "Constantine", domicileFee: 700, stopdeskFee: 400, duration: "24 ساعة", stopdesk: { address: "Ali mendjli UV 02 bat demberi près au yes mal (en face le château d’eau)", phone: "0775168505 / 0770960115", maps_link: "https://maps.app.goo.gl/nNZyXqaqW2gJHWaP8", agency: "cirta" } },
+  { id: 26, name_ar: "المدية", name_fr: "Médéa", domicileFee: 600, stopdeskFee: 300, duration: "12-48 ساعة", stopdesk: { address: "طريق كابيندا مقابل معهد التكوين المهني", phone: "0563000994", maps_link: "https://g.co/kgs/RC6MZ43", agency: "packers" } },
+  { id: 27, name_ar: "مستغانم", name_fr: "Mostaganem", domicileFee: 700, stopdeskFee: 400, duration: "24 ساعة", stopdesk: { address: "Chamouma à coté de matériels médicaux et de la salle de sport en face la résidence universitaire filles 2200 (شمومة مقابل الاقامة الجامعية هواري بومدين للبنات)", phone: "0663308597", maps_link: "https://maps.app.goo.gl/vc2WPUqR8J1DMnuT6?g_st=ac", agency: "packers" } },
+  { id: 28, name_ar: "المسيلة", name_fr: "M'Sila", domicileFee: 700, stopdeskFee: 350, duration: "24-96 ساعة", stopdesk: { address: "حي الشيخ مقراني بجانب عيادة القلعة المسيلة", phone: "0660025941", maps_link: "https://maps.app.goo.gl/ktuwwFganUX4ZW2P6", agency: "packers" } },
+  { id: 29, name_ar: "معسكر", name_fr: "Mascara", domicileFee: 700, stopdeskFee: 450, duration: "24 ساعة", stopdesk: { address: "معسكر بجانب المحكمة الجديدة فوق مطعم ومخبزة بن حوا", phone: "0699020557", maps_link: "https://maps.app.goo.gl/AmmTURTRGSMDE5yx7", agency: "packers" } },
+  { id: 30, name_ar: "ورقلة", name_fr: "Ouargla", domicileFee: 800, stopdeskFee: 500, duration: "2-6 أيام", stopdesk: { address: "حي النصر (الخفجي) خلف البلدية ورقلة", phone: "0655386012", maps_link: "https://maps.app.goo.gl/wxemrt7i2AVKxnpWA?g_st=aw", agency: "expedia" } },
+  { id: 31, name_ar: "وهران", name_fr: "Oran", domicileFee: 700, stopdeskFee: 400, duration: "24 ساعة", stopdesk: { address: "بير الجير، وهران", phone: "0773148152 / 0659615460", maps_link: "https://goo.gl/maps/CStcvHFXjqbRW4n69", agency: "pdex" } },
+  { id: 32, name_ar: "البيض", name_fr: "El Bayadh", domicileFee: 900, stopdeskFee: 500, duration: "2-6 أيام", stopdesk: { address: "حي السعادة مقابل مسجد دار الصوف و حمام حليس", phone: "0673444871 / 0673278291", maps_link: "https://maps.app.goo.gl/6JwcJi9q9u5ES2oA6?g_st=aw", agency: "noest" } },
+  { id: 33, name_ar: "إليزي", name_fr: "Illizi", domicileFee: 1200, stopdeskFee: 1100, duration: "2-7 أيام", stopdesk: { address: "just a cote de l'APC en face veterinaire de centre ville - illizi", phone: "0676086025", maps_link: "https://maps.app.goo.gl/r3Cbw4MnPwEV1oQA6", agency: "dhd" } },
+  { id: 34, name_ar: "برج بوعريريج", name_fr: "Bordj Bou Arreridj", domicileFee: 700, stopdeskFee: 350, duration: "24 ساعة", stopdesk: { address: "ساحة الوئام 12 شارع موسى الدراجي لقواس الطريق المؤدي الى المركز الصحي و مسجد الشيخ البشير الابراهيمي 05 جويلية", phone: "0560070414", maps_link: "https://maps.app.goo.gl/VUs8wsyez6a58uyB9", agency: "packers" } },
+  { id: 35, name_ar: "بومرداس", name_fr: "Boumerdès", domicileFee: 600, stopdeskFee: 300, duration: "24 ساعة", stopdesk: { address: "cooperative 11 December boumerdess center", phone: "0563000996", maps_link: "https://maps.app.goo.gl/xxgwUkqomz59Ceyd8", agency: "packers" } },
+  { id: 36, name_ar: "الطارف", name_fr: "El Tarf", domicileFee: 700, stopdeskFee: 450, duration: "24 ساعة", stopdesk: { address: "City center (centre commerciale zaydi 1er étage N°10) wilaya El taref", phone: "0550522421 / 0550523464", maps_link: "https://maps.app.goo.gl/h1d4bQ1fDQ45wV2E9", agency: "noest" } },
+  { id: 37, name_ar: "تندوف", name_fr: "Tindouf", domicileFee: 1300, stopdeskFee: 850, duration: "2-7 أيام", stopdesk: { address: "محل رقم 2 حي القصابي قسم 23 رقم 122 بلدية تندوف", phone: "0670081307 / 0670058070", maps_link: "https://maps.app.goo.gl/SJxqEu3ryX8dsJdK6", agency: "dhd" } },
+  { id: 38, name_ar: "تيسمسيلت", name_fr: "Tissemsilt", domicileFee: 700, stopdeskFee: 400, duration: "24 ساعة", stopdesk: { address: "بجانب البنك التنمية و مركز البريد الوئام", phone: "0770186120", maps_link: "https://maps.app.goo.gl/Fjamg9cdS1Y5emHV9", agency: "expedia" } },
+  { id: 39, name_ar: "الوادي", name_fr: "El Oued", domicileFee: 700, stopdeskFee: 550, duration: "24 ساعة", stopdesk: { address: "طريق 19 مارس المؤدي إلى متوسطة محمود شريفي والسجل التجاري (طريق المحكمة) مقابل غميمة للدهانات 1", phone: "0557126542", maps_link: "https://maps.app.goo.gl/PNCMNWtG7V5T49vZ8?g_st=ac", agency: "packers" } },
+  { id: 40, name_ar: "خنشلة", name_fr: "Khenchela", domicileFee: 700, stopdeskFee: 450, duration: "24 ساعة", stopdesk: { address: "حي السعادة قرب مسجد خديجة ام المؤمنين", phone: "0770957960", maps_link: "https://maps.app.goo.gl/ha5uz4pj8TfmMU6z5?g_st=afm", agency: "cirta" } },
+  { id: 41, name_ar: "سوق أهراس", name_fr: "Souk Ahras", domicileFee: 700, stopdeskFee: 400, duration: "24 ساعة", stopdesk: { address: "فيال دغمان فوق مسجد األمان", phone: "0675565680", maps_link: "https://maps.app.goo.gl/FLjmRgdp7ru3f1618?g_st=ac", agency: "noest" } },
+  { id: 42, name_ar: "تيبازة", name_fr: "Tipaza", domicileFee: 600, stopdeskFee: 400, duration: "24 ساعة", stopdesk: { address: "Cité 1700 logs aadl tipaza", phone: "0563000995", maps_link: "https://maps.app.goo.gl/g5LswiaL3KKo7hJ38", agency: "packers" } },
+  { id: 43, name_ar: "ميلة", name_fr: "Mila", domicileFee: 700, stopdeskFee: 400, duration: "24 ساعة", stopdesk: { address: "حي بو المرقة بجانب مديرية التجارة ميلة", phone: "0770428180 / 0770107556", maps_link: "https://maps.app.goo.gl/qiNNom3oeFjgsJSk9", agency: "milev express" } },
+  { id: 44, name_ar: "عين الدفلى", name_fr: "Aïn Defla", domicileFee: 700, stopdeskFee: 400, duration: "24 ساعة", stopdesk: { address: "حي ناجم محمد ليسكادرو مقابل وحدة مياه عين الدفلى", phone: "0770012849", maps_link: "https://maps.app.goo.gl/vEJFz9VaCrW2zQMW7?g_st=ac", agency: "expedia" } },
+  { id: 45, name_ar: "النعامة", name_fr: "Naâma", domicileFee: 900, stopdeskFee: 650, duration: "2-5 أيام", stopdesk: { address: "حديقة فلسطين المشرية النعامة", phone: "660018177", maps_link: "https://maps.app.goo.gl/3wez4vheRMRsHeHTA?g_st=ac", agency: "noest" } },
+  { id: 46, name_ar: "عين تموشنت", name_fr: "Aïn Témouchent", domicileFee: 700, stopdeskFee: 450, duration: "24 ساعة", stopdesk: { address: "Cité tounsi route du tribunal ain temouchent", phone: "0552377638", maps_link: "https://maps.app.goo.gl/uxgfxDTsVRuxj1Wr8", agency: "pdex" } },
+  { id: 47, name_ar: "غرداية", name_fr: "Ghardaïa", domicileFee: 800, stopdeskFee: 450, duration: "2-4 أيام", stopdesk: { address: "حي سيدي عباز خلف صيدلية قمبار", phone: "0541085363", maps_link: "https://maps.app.goo.gl/6JwcJi9q9u5ES2oA6?g_st=aw", agency: "kd express" } },
+  { id: 48, name_ar: "غليزان", name_fr: "Relizane", domicileFee: 700, stopdeskFee: 400, duration: "24 ساعة", stopdesk: { address: "Cité berrezagua (village brali) derriére la poste , la ligne laboratoire benderdouche", phone: "0552422812", maps_link: "https://maps.app.goo.gl/otpHg5uFaKhdAVYH6", agency: "hkg" } },
+  { id: 49, name_ar: "تيميمون", name_fr: "Timimoun", domicileFee: 1000, stopdeskFee: 750, duration: "2-6 أيام", stopdesk: { address: "cité MAHDJOUB N° de la porte 16 , Timimoun en face le stade et SAA", phone: "0555518628", maps_link: "https://maps.app.goo.gl/9M2pEWAjDHAaUrKF8", agency: "noest" } },
+  { id: 50, name_ar: "برج باجي مختار", name_fr: "Bordj Badji Mokhtar", domicileFee: 1800, stopdeskFee: null, duration: "3-10 أيام" },
+  { id: 51, name_ar: "أولاد جلال", name_fr: "Ouled Djellal", domicileFee: 800, stopdeskFee: 600, duration: "2-6 أيام", stopdesk: { address: "بجانب سونلغاز ولاد جلال ، اتجاه الدكتورة بدري زوجة حمريط", phone: "0770642352", maps_link: "https://maps.app.goo.gl/FEDatZ46h7ai3gM36?g_st=iw", agency: "Bureau mdz Ouled Djalal" } },
+  { id: 52, name_ar: "بني عباس", name_fr: "Béni Abbès", domicileFee: 1200, stopdeskFee: 700, duration: "3-10 أيام", stopdesk: { address: "مقابل المجلس الشعبي الولائي", phone: "0561906728", maps_link: "https://goo.gl/maps/rCxc9J3jwhSotbuB6", agency: "noest" } },
+  { id: 53, name_ar: "عين صالح", name_fr: "In Salah", domicileFee: 1000, stopdeskFee: 1000, duration: "2-6 أيام", stopdesk: { address: "Près de la Direction des travaux publics, en face de l'entrée du radar d'Algérie Télécom", phone: "0560362803", maps_link: "https://maps.app.goo.gl/E8boeiuC6jKRZr3f9", agency: "noest" } },
+  { id: 54, name_ar: "عين قزام", name_fr: "In Guezzam", domicileFee: null, stopdeskFee: null, duration: "4-8 أيام" },
+  { id: 55, name_ar: "تقرت", name_fr: "Touggourt", domicileFee: 800, stopdeskFee: 550, duration: "2-6 أيام", stopdesk: { address: "بجانب الاستعجالات القديمه سليمان عميرات امام مصحه الشفاء للدكتور الطبيب حسيني حي محمد خميستي", phone: "0697138992", maps_link: "https://maps.google.com/?q=33.098801,6.060595", agency: "packers" } },
+  { id: 56, name_ar: "جانت", name_fr: "Djanet", domicileFee: null, stopdeskFee: null, duration: "2-7 أيام" },
+  { id: 57, name_ar: "المغير", name_fr: "El M'Ghair", domicileFee: 800, stopdeskFee: null, duration: "2-6 أيام" },
+  { id: 58, name_ar: "المنيعة", name_fr: "El Meniaa", domicileFee: 1000, stopdeskFee: 700, duration: "2-6 أيام", stopdesk: { address: "Rue de l’unite African (À côté de la boulangerie Boussaid) Il se trouve à 20 mètres de la mosquée saad beno abi elouas", phone: "0770602445", maps_link: "https://maps.app.goo.gl/JN34ACNxT1jq1JZGA", agency: "swift" } }
 ];
 
-export function getWilayaById(id: number): Wilaya | undefined {
-  return wilayas.find((w) => w.id === id);
-}
+export const wilayas = wilayasData;
 
-export function getDeliveryFee(wilayaId: number, deliveryType: DeliveryType): number {
-  const wilaya = getWilayaById(wilayaId);
-  if (!wilaya) return deliveryType === "domicile" ? 800 : 450;
-  return deliveryType === "domicile" ? wilaya.domicileFee : wilaya.stopdeskFee;
+export function getWilayaById(id: number): WilayaDeliveryData | undefined {
+  return wilayasData.find((w) => w.id === id);
 }
