@@ -49,25 +49,45 @@ export async function createParcel(order: Order): Promise<EcoTrackResponse> {
       body: JSON.stringify(payload),
     });
 
-    const data = await res.json();
+    const resText = await res.text();
+    let data: Record<string, unknown> = {};
+    try {
+      data = JSON.parse(resText);
+    } catch {
+      return {
+        success: false,
+        error: `استجابة غير صالحة من EcoTrack (HTTP ${res.status}): ${resText.slice(0, 150)}`,
+      };
+    }
 
-    if (data.success || data.tracking || data.data?.tracking_code) {
+    if (data.success || data.tracking || (data.data as Record<string, unknown>)?.tracking_code || data.code === 200) {
+      const trackingCode =
+        (data.tracking as string) ||
+        ((data.data as Record<string, unknown>)?.tracking_code as string) ||
+        null;
+
       return {
         success: true,
-        tracking_code: data.tracking || data.data?.tracking_code || null,
+        tracking_code: trackingCode || undefined,
         raw: data,
       };
     }
 
+    const errorMsg =
+      (data.message as string) ||
+      (data.error as string) ||
+      (typeof data.data === "string" ? data.data : null) ||
+      `رمز الاستجابة: ${data.code || res.status}`;
+
     return {
       success: false,
-      error: data.message || data.error || "Unknown EcoTrack error",
+      error: errorMsg,
       raw: data,
     };
   } catch (err) {
     return {
       success: false,
-      error: err instanceof Error ? err.message : "Network error connecting to EcoTrack",
+      error: err instanceof Error ? err.message : "فشل الاتصال بشبكة EcoTrack",
     };
   }
 }

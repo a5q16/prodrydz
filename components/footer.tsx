@@ -4,14 +4,9 @@ export default function Footer() {
       <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6">
         <div className="flex flex-col items-center gap-4 sm:flex-row sm:justify-between">
           {/* Brand */}
-          <div className="flex items-center gap-2">
-            <div className="flex h-7 w-7 items-center justify-center rounded-md bg-accent text-white text-xs font-bold">
-              PD
-            </div>
-            <span className="text-sm font-bold text-foreground">
-              ProDry <span className="text-accent">DZ</span>
-            </span>
-          </div>
+          <span className="text-sm font-bold text-foreground">
+            ProDry <span className="text-accent">DZ</span>
+          </span>
 
           {/* Links */}
           <div className="flex items-center gap-4 text-xs text-muted-foreground">
@@ -24,7 +19,7 @@ export default function Footer() {
               تواصل معنا عبر واتساب
             </a>
             <span className="text-border">|</span>
-            <span>الدفع عند الاستلام فقط</span>
+            <span>الدفع عند الاستلام أو عبر بريدي موب</span>
           </div>
 
           {/* Copyright */}

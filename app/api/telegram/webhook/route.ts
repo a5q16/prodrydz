@@ -4,6 +4,11 @@ import { answerCallbackQuery, editTelegramMessage } from "@/lib/telegram";
 import { createParcel } from "@/lib/ecotrack";
 import type { Order } from "@/lib/types";
 
+// Helper to check if string is valid UUID
+function isValidUUID(uuid: string) {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-5][0-9a-f]{3}-[0-89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(uuid);
+}
+
 /**
  * Telegram Webhook Handler
  * Processes inline keyboard callback queries from admin Telegram chat.
@@ -33,24 +38,35 @@ export async function POST(request: Request) {
     }
 
     const [action, ...idParts] = data.split("_");
-    const orderId = idParts.join("_");
+    const rawId = idParts.join("_");
 
-    if (!orderId) {
+    if (!rawId) {
       await answerCallbackQuery(callbackId, "معرف الطلب مفقود");
       return NextResponse.json({ ok: true });
     }
 
+    // Acknowledge Callback Query immediately to stop button loading spinner
+    await answerCallbackQuery(callbackId, "جاري المعالجة...");
+
     const supabase = getSupabaseAdmin();
 
-    // Fetch the order
-    const { data: order, error: fetchError } = await supabase
-      .from("orders")
-      .select("*")
-      .eq("id", orderId)
-      .single();
+    // Safe DB Lookup (supports both UUID and SERIAL order_number without Postgres casting error)
+    let query = supabase.from("orders").select("*");
+    if (isValidUUID(rawId)) {
+      query = query.eq("id", rawId);
+    } else if (!isNaN(Number(rawId))) {
+      query = query.eq("order_number", parseInt(rawId, 10));
+    } else {
+      query = query.eq("id", rawId);
+    }
+
+    const { data: order, error: fetchError } = await query.maybeSingle();
 
     if (fetchError || !order) {
-      await answerCallbackQuery(callbackId, "❌ الطلب غير موجود");
+      await editTelegramMessage(
+        messageId,
+        `❌ *عفوًا، لم يتم العثور على الطلب في قاعدة البيانات (${rawId})*`
+      );
       return NextResponse.json({ ok: true });
     }
 
@@ -58,55 +74,56 @@ export async function POST(request: Request) {
 
     switch (action) {
       case "confirm": {
-        await answerCallbackQuery(callbackId, "⏳ جاري الإرسال لشركة التوصيل...");
+        try {
+          const ecoResult = await createParcel(typedOrder);
 
-        // Call EcoTrack API
-        const ecoResult = await createParcel(typedOrder);
+          if (ecoResult.success) {
+            await supabase
+              .from("orders")
+              .update({
+                status: "shipped",
+                tracking_code: ecoResult.tracking_code || null,
+                ecotrack_response: ecoResult.raw || null,
+              })
+              .eq("id", typedOrder.id);
 
-        if (ecoResult.success) {
-          // Update order in Supabase
-          await supabase
-            .from("orders")
-            .update({
-              status: "shipped",
-              tracking_code: ecoResult.tracking_code,
-              ecotrack_response: ecoResult.raw || null,
-            })
-            .eq("id", orderId);
-
-          // Edit Telegram message
-          const deliveryLabel = typedOrder.delivery_type === "domicile" ? "🏠 باب الدار" : "🏢 مكتب";
+            const deliveryLabel = typedOrder.delivery_type === "domicile" ? "🏠 باب الدار" : "🏢 مكتب";
+            await editTelegramMessage(
+              messageId,
+              [
+                `✅ *تم تأكيد الطلب وإصدار البوليصة!*`,
+                ``,
+                `📦 *طلب رقم # ${typedOrder.order_number}*`,
+                `👤 الاسم: ${typedOrder.full_name}`,
+                `📞 الهاتف: ${typedOrder.phone}`,
+                `📍 العنوان: ${typedOrder.wilaya_name} - ${typedOrder.commune}`,
+                `🚚 التوصيل: ${deliveryLabel}`,
+                `💰 الإجمالي: ${typedOrder.total_price} دج`,
+                ``,
+                `🔑 *رقم التتبع:* \`${ecoResult.tracking_code || "تم الإنشاء بدون رقم تتبع"}\``,
+              ].join("\n")
+            );
+          } else {
+            await editTelegramMessage(
+              messageId,
+              [
+                `⚠️ *فشل إرسال الطلب لـ Packers!*`,
+                ``,
+                `📦 *طلب رقم # ${typedOrder.order_number}*`,
+                `👤 الاسم: ${typedOrder.full_name}`,
+                `📞 الهاتف: ${typedOrder.phone}`,
+                ``,
+                `❌ *السبب:* \`${ecoResult.error || "خطأ غير معروف في الربط"}\``,
+                ``,
+                `يرجى المراجعة والتحقق من البيانات.`,
+              ].join("\n")
+            );
+          }
+        } catch (err) {
+          const errorMsg = err instanceof Error ? err.message : "خطأ غير متوقع";
           await editTelegramMessage(
             messageId,
-            [
-              `✅ *تم تأكيد الطلب # ${typedOrder.order_number}*`,
-              ``,
-              `👤 ${typedOrder.full_name}`,
-              `📞 ${typedOrder.phone}`,
-              `📍 ${typedOrder.wilaya_name} - ${typedOrder.commune}`,
-              `🚚 ${deliveryLabel}`,
-              `💰 ${typedOrder.total_price} دج`,
-              ``,
-              `📦 رقم التتبع: \`${ecoResult.tracking_code || "N/A"}\``,
-              `✅ تم الإرسال لشركة التوصيل بنجاح`,
-            ].join("\n")
-          );
-        } else {
-          // EcoTrack failed
-          await editTelegramMessage(
-            messageId,
-            [
-              `⚠️ *خطأ في الطلب # ${typedOrder.order_number}*`,
-              ``,
-              `👤 ${typedOrder.full_name} | 📞 ${typedOrder.phone}`,
-              `📍 ${typedOrder.wilaya_name} - ${typedOrder.commune}`,
-              `💰 ${typedOrder.total_price} دج`,
-              ``,
-              `❌ حدث خطأ أثناء الاتصال بشركة التوصيل:`,
-              `\`${ecoResult.error}\``,
-              ``,
-              `يرجى إعادة المحاولة يدوياً.`,
-            ].join("\n")
+            `⚠️ *فشل إرسال الطلب لـ Packers! السبب:* \`${errorMsg}\``
           );
         }
         break;
@@ -116,7 +133,7 @@ export async function POST(request: Request) {
         await supabase
           .from("orders")
           .update({ status: "cancelled" })
-          .eq("id", orderId);
+          .eq("id", typedOrder.id);
 
         await editTelegramMessage(
           messageId,
@@ -129,18 +146,26 @@ export async function POST(request: Request) {
             `💰 ${typedOrder.total_price} دج`,
           ].join("\n")
         );
-
-        await answerCallbackQuery(callbackId, "تم إلغاء الطلب ❌");
         break;
       }
 
       case "postpone": {
-        await answerCallbackQuery(callbackId, "⏳ تم التأجيل — لم يتغير حالة الطلب");
+        await editTelegramMessage(
+          messageId,
+          [
+            `⏳ *تم تأجيل الطلب # ${typedOrder.order_number}*`,
+            ``,
+            `👤 ${typedOrder.full_name}`,
+            `📞 ${typedOrder.phone}`,
+            `📍 ${typedOrder.wilaya_name}`,
+            `💰 ${typedOrder.total_price} دج`,
+          ].join("\n")
+        );
         break;
       }
 
       default: {
-        await answerCallbackQuery(callbackId, "إجراء غير معروف");
+        break;
       }
     }
 
