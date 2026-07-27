@@ -45,6 +45,7 @@ export async function createParcel(order: Order): Promise<EcoTrackResponse> {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        "Accept": "application/json",
         Authorization: `Bearer ${API_TOKEN}`,
       },
       body: JSON.stringify(payload),
@@ -57,7 +58,7 @@ export async function createParcel(order: Order): Promise<EcoTrackResponse> {
     } catch {
       return {
         success: false,
-        error: `استجابة غير صالحة من EcoTrack (HTTP ${res.status}): ${resText.slice(0, 150)}`,
+        error: `HTTP ${res.status} non-JSON response: ${resText}`,
       };
     }
 
@@ -74,15 +75,12 @@ export async function createParcel(order: Order): Promise<EcoTrackResponse> {
       };
     }
 
-    const errorMsg =
-      (data.message as string) ||
-      (data.error as string) ||
-      (typeof data.data === "string" ? data.data : null) ||
-      `رمز الاستجابة: ${data.code || res.status}`;
+    // Return the ENTIRE raw JSON error object un-truncated
+    const fullJsonError = JSON.stringify(data, null, 2);
 
     return {
       success: false,
-      error: errorMsg,
+      error: fullJsonError,
       raw: data,
     };
   } catch (err) {
