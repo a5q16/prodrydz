@@ -9,15 +9,16 @@ import { NextResponse } from "next/server";
  */
 export async function GET() {
   const token = process.env.TELEGRAM_BOT_TOKEN;
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
+  const rawSiteUrl = process.env.NEXT_PUBLIC_SITE_URL;
 
-  if (!token || !siteUrl) {
+  if (!token || !rawSiteUrl) {
     return NextResponse.json(
       { error: "Missing TELEGRAM_BOT_TOKEN or NEXT_PUBLIC_SITE_URL" },
       { status: 500 }
     );
   }
 
+  const siteUrl = rawSiteUrl.replace(/\/+$/, "");
   const webhookUrl = `${siteUrl}/api/telegram/webhook`;
 
   try {
