@@ -13,7 +13,7 @@ interface EcoTrackResponse {
 
 /**
  * Create a parcel on EcoTrack (Packers Delivery).
- * Maps order data to the EcoTrack API standard schema.
+ * Maps order data to the exact EcoTrack confirmation payload specification.
  */
 export async function createParcel(order: Order): Promise<EcoTrackResponse> {
   const payload: Record<string, unknown> = {
@@ -21,19 +21,13 @@ export async function createParcel(order: Order): Promise<EcoTrackResponse> {
     nom_client: order.full_name,
     telephone: order.phone,
     telephone_2: "",
-    adresse: `${order.commune}, ${order.wilaya_name}`,
+    adresse: `${order.commune}, Wilaya ${order.wilaya_id}`,
+    code_wilaya: order.wilaya_id,
     commune: order.commune,
-    wilaya: order.wilaya_id,
-    wilaya_id: order.wilaya_id,
     montant: order.total_price,
-    remarque: `Commande ${order.bundle_type} - Paiement: ${order.payment_method}${order.payment_method === "baridimob" ? " (الدفع عبر بريدي موب — لا تحصيل)" : ""}`,
-    type_livraison: order.delivery_type === "stopdesk" ? 2 : 1,
-    stop_desk: order.delivery_type === "stopdesk" ? 1 : 0,
+    type: order.delivery_type === "stopdesk" ? 2 : 1,
     produit: "ProDry 1400GSM Drying Towel",
-    poids: 1,
-    can_open: 1,
-    stock: 0,
-    reference: `PRODRY-${order.order_number}`,
+    remarque: `Commande ${order.bundle_type} - Paiement: ${order.payment_method}`,
   };
 
   if (USER_GUID) {
@@ -75,7 +69,7 @@ export async function createParcel(order: Order): Promise<EcoTrackResponse> {
       };
     }
 
-    // Return the ENTIRE raw JSON error object un-truncated
+    // Return full raw JSON error object un-truncated
     const fullJsonError = JSON.stringify(data, null, 2);
 
     return {

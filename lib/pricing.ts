@@ -1,5 +1,5 @@
 import { Bundle, BundleType, DeliveryType } from "./types";
-import { getDeliveryFee } from "./wilayas";
+import { getShippingFee as getEcoTrackShippingFee } from "./ecotrack-data";
 
 export const bundles: Bundle[] = [
   {
@@ -49,9 +49,7 @@ export function calculatePrice(
     throw new Error(`Invalid bundle type: ${bundleType}`);
   }
 
-  const shippingFee = bundle.freeShipping
-    ? 0
-    : getDeliveryFee(wilayaId, deliveryType);
+  const shippingFee = getEcoTrackShippingFee(wilayaId, deliveryType, bundleType);
 
   return {
     bundlePrice: bundle.price,

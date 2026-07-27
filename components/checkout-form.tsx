@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useEffect } from "react";
 import { wilayas } from "@/lib/wilayas";
-import { getCommunesByWilaya } from "@/lib/communes";
+import { getCommunesByWilaya } from "@/lib/ecotrack-data";
 import { calculatePrice, formatPrice } from "@/lib/pricing";
 import { orderFormSchema, type BundleType, type DeliveryType, type PaymentMethod } from "@/lib/types";
 import { toast } from "sonner";
@@ -21,6 +21,7 @@ export default function CheckoutForm({ selectedBundle }: CheckoutFormProps) {
   const [submitted, setSubmitted] = useState(false);
   const [deliveryType, setDeliveryType] = useState<DeliveryType>("domicile");
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("cod");
+  const [stopdeskHint, setStopdeskHint] = useState(false);
 
   const [formData, setFormData] = useState({
     full_name: "",
@@ -31,7 +32,23 @@ export default function CheckoutForm({ selectedBundle }: CheckoutFormProps) {
 
   const selectedWilaya = formData.wilaya_id || 16;
   const priceBreakdown = calculatePrice(selectedBundle, selectedWilaya, deliveryType);
-  const communesList = formData.wilaya_id > 0 ? getCommunesByWilaya(formData.wilaya_id) : [];
+  const communesList = formData.wilaya_id > 0 ? getCommunesByWilaya(formData.wilaya_id, deliveryType === "stopdesk") : [];
+
+  // Re-check commune when deliveryType changes to stopdesk
+  useEffect(() => {
+    if (formData.wilaya_id > 0 && formData.commune && deliveryType === "stopdesk") {
+      const validCommunes = getCommunesByWilaya(formData.wilaya_id, true);
+      const exists = validCommunes.some((c) => c.nom === formData.commune);
+      if (!exists) {
+        setFormData((prev) => ({ ...prev, commune: "" }));
+        setStopdeskHint(true);
+      } else {
+        setStopdeskHint(false);
+      }
+    } else {
+      setStopdeskHint(false);
+    }
+  }, [deliveryType, formData.wilaya_id, formData.commune]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -42,7 +59,7 @@ export default function CheckoutForm({ selectedBundle }: CheckoutFormProps) {
       setFormData((prev) => ({
         ...prev,
         wilaya_id: newWilayaId,
-        commune: "", // Reset commune when wilaya changes
+        commune: "",
       }));
     } else {
       setFormData((prev) => ({
@@ -61,7 +78,7 @@ export default function CheckoutForm({ selectedBundle }: CheckoutFormProps) {
 
     const selectedWilayaObj = wilayas.find((w) => w.id === formData.wilaya_id);
     const wilayaName = selectedWilayaObj?.name_ar || "";
-    const constructedAddress = `${formData.commune}, ${wilayaName}`;
+    const constructedAddress = `${formData.commune}, Wilaya ${formData.wilaya_id}`;
 
     const data = {
       ...formData,
@@ -257,7 +274,7 @@ export default function CheckoutForm({ selectedBundle }: CheckoutFormProps) {
             {errors.wilaya_id && <p className="mt-1 text-xs text-destructive">{errors.wilaya_id}</p>}
           </div>
 
-          {/* Commune (Dependent Dropdown) */}
+          {/* Commune (Dynamic Dropdown + Smart Filtering) */}
           <div>
             <label htmlFor="commune" className="mb-1.5 block text-sm font-semibold text-foreground">
               البلدية <span className="text-destructive">*</span>
@@ -272,12 +289,17 @@ export default function CheckoutForm({ selectedBundle }: CheckoutFormProps) {
               <option value="" disabled>
                 {formData.wilaya_id === 0 ? "يرجى اختيار الولاية أولاً..." : "اختر البلدية..."}
               </option>
-              {communesList.map((communeName, i) => (
-                <option key={i} value={communeName}>
-                  {communeName}
+              {communesList.map((item, i) => (
+                <option key={i} value={item.nom}>
+                  {item.nom}
                 </option>
               ))}
             </select>
+            {stopdeskHint && (
+              <p className="mt-1 text-xs text-amber-500 font-medium">
+                ⚠️ تم إخفاء البلديات التي لا تحتوي على مكتب توصيل
+              </p>
+            )}
             {errors.commune && <p className="mt-1 text-xs text-destructive">{errors.commune}</p>}
           </div>
 
