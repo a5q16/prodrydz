@@ -24,7 +24,6 @@ export async function sendOrderNotification(order: Order): Promise<number | null
     `👤 الاسم: ${order.full_name}`,
     `📞 الهاتف: ${order.phone}`,
     `📍 العنوان: ${order.wilaya_name} - ${order.commune}`,
-    `🏠 ${order.address}`,
     `🚚 التوصيل: ${deliveryLabel}`,
     `🛒 العرض: ${bundleLabels[order.bundle_type] || order.bundle_type}`,
     `💰 الإجمالي: ${order.total_price} دج (الشحن: ${order.shipping_fee} دج)`,
@@ -49,6 +48,7 @@ export async function sendOrderNotification(order: Order): Promise<number | null
         chat_id: CHAT_ID,
         text,
         parse_mode: "Markdown",
+        disable_notification: false,
         reply_markup: { inline_keyboard },
       }),
     });

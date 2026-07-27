@@ -51,17 +51,18 @@ export async function POST(request: Request) {
       );
     }
 
-    // Send Telegram notification (async, non-blocking for user response)
-    sendOrderNotification(order as Order)
-      .then(async (messageId) => {
-        if (messageId) {
-          await supabase
-            .from("orders")
-            .update({ telegram_message_id: messageId })
-            .eq("id", order.id);
-        }
-      })
-      .catch((err) => console.error("Telegram notification failed:", err));
+    // Explicitly await Telegram notification to prevent Vercel serverless lambda execution freeze
+    try {
+      const messageId = await sendOrderNotification(order as Order);
+      if (messageId) {
+        await supabase
+          .from("orders")
+          .update({ telegram_message_id: messageId })
+          .eq("id", order.id);
+      }
+    } catch (err) {
+      console.error("Telegram notification failed:", err);
+    }
 
     return NextResponse.json({
       success: true,
