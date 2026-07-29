@@ -47,6 +47,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ar" dir="rtl" className={`${tajawal.variable} antialiased`}>
+      <head>
+        <meta name="facebook-domain-verification" content="gwcqzdqjy5f90gxktv5y9ljeqx7wzy" />
+      </head>
       <body className="min-h-dvh bg-background text-foreground font-sans">
         {children}
         <Toaster
