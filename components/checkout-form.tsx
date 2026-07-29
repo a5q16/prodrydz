@@ -141,16 +141,15 @@ export default function CheckoutForm({ selectedBundle }: CheckoutFormProps) {
         if (response.ok && responseData.success) {
           setSubmitted(true);
 
-          // إطلاق حدث الشراء للبيكسل بالسعر الحقيقي الذي دفعه الزبون
-          if (typeof window !== 'undefined' && window.fbq) {
-            window.fbq('track', 'Purchase', {
+          // إطلاق حدث الشراء للبيكسل بالسعر الحقيقي الذي دفعه الزبون وتخطي فحص TypeScript
+          if (typeof window !== 'undefined' && (window as any).fbq) {
+            (window as any).fbq('track', 'Purchase', {
               value: priceBreakdown.totalPrice, 
               currency: 'DZD'
             });
           }
 
           if (paymentMethod === "baridimob" && responseData.order_number) {
-            // ... (باقي الكود الخاص بك كما هو)
             toast.success("تم تسجيل طلبك! جاري تحويلك للدفع عبر بريدي موب...", {
               duration: 3000,
             });
